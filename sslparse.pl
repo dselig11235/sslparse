@@ -14,7 +14,7 @@ foreach(@ARGV) {
 }
 
 my %vulnerabilities;
-foreach $vname ('proto', 'weak_ciphers', 'anonymous_ciphers', 'scsv', 'rsa strength', 'signer', 'cert time') {
+foreach $vname ('proto', 'weak_ciphers', 'anonymous_ciphers', 'scsv', 'rsa strength', 'signer', 'cert time', 'renegotiation', 'compression', 'heartbleed') {
     my @vulns;
     foreach(@scans) {
         if(exists $_->{'vulnerabilities'}->{$vname}) {
@@ -55,5 +55,6 @@ printIssues("TLS Fallback SCSV Not Supported.spl", 'scsv');
 printIssues("Weak RSA Certificate.spl", 'rsa strength');
 printIssues("Self-signed Certificate.spl", 'signer');
 printIssues("Expired Certificate.spl", 'cert time');
-
-
+printIssues("TLS Compresssion is Enabled.spl", 'compression');
+printIssues("TLS Renegotiation Not Supported.spl", 'renegotiation');
+printIssues("Heartbleed Vulnerability.spl", 'heartbleed');

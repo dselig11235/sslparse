@@ -1,9 +1,5 @@
 #!/usr/bin/perl -w
 
-# Used for debugging only
-use Term::ANSIColor;
-use JSON;
-
 package SSLScan;
 sub matchNonGreen {
     my $str = shift(@_);
@@ -57,6 +53,9 @@ sub readFromFile {
     $self->getCipherIssues();
     $self->getSCSVIssues();
     $self->getCertIssues();
+    $self->getHeartbleedIssues();
+    $self->getCompressionIssues();
+    $self->getRenogitiationIssues();
 }
 
 
@@ -109,14 +108,52 @@ sub getCipherIssues {
 
 sub getSCSVIssues {
     my $self = shift;
-    my @scsv_issues = ();
     return if not exists $self->{'TLS Fallback SCSV'};
-    if(strip_color($self->{'TLS Fallback SCSV'}[0]) =~ /Server does not support TLS Fallback SCSV/) {
-        push(@scsv_issues, $self->{'TLS Fallback SCSV'}[0]);
-        #$self->{'vulnerabilities'}->{'scsv'} = [$data{'TLS Fallback SCSV'}[0]];
+    my $data = $self->{'TLS Fallback SCSV'}[0];
+    if(matchNonGreen($data)) {
+        push(@{$self->{'vulnerabilities'}->{'scsv'}}, $data);
     }
-    $self->{'vulnerabilities'}->{'scsv'} = \@scsv_issues if(scalar(@scsv_issues) != 0);
 }
+
+sub getRenogitiationIssues {
+    my $self = shift;
+    return if not exists $self->{'TLS renegotiation'};
+    my $data = $self->{'TLS renegotiation'}[0];
+    if(matchNonGreen($data)) {
+        push(@{$self->{'vulnerabilities'}->{'renogitiation'}}, $data);
+    }
+}
+
+sub getCompressionIssues {
+    my $self = shift;
+    return if not exists $self->{'TLS Compression'};
+    my $data = $self->{'TLS Compression'}[0];
+    if(matchNonGreen($data)) {
+        push(@{$self->{'vulnerabilities'}->{'compression'}}, $data);
+    }
+}
+
+sub getHeartbleedIssues {
+    my $self = shift;
+    my @heartbleed = ();
+    return if not exists $self->{'Heartbleed'};
+    foreach(@{$self->{'Heartbleed'}}) {
+        if(matchNonGreen($_)) {
+            push(@heartbleed, $_);
+        }
+    }
+    $self->{'vulnerabilities'}->{'heartbleed'} = \@heartbleed if(scalar(@heartbleed) != 0);
+}
+
+#sub getSCSVIssues {
+#    my $self = shift;
+#    my @scsv_issues = ();
+#    return if not exists $self->{'TLS Fallback SCSV'};
+#    if(strip_color($self->{'TLS Fallback SCSV'}[0]) =~ /Server does not support TLS Fallback SCSV/) {
+#        push(@scsv_issues, $self->{'TLS Fallback SCSV'}[0]);
+#    }
+#    $self->{'vulnerabilities'}->{'scsv'} = \@scsv_issues if(scalar(@scsv_issues) != 0);
+#}
 
 sub getCertIssues {
     my $self = shift;
